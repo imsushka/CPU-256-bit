@@ -1,1 +1,6 @@
+1024 bytes 
+can access as 8/16/32/64/128/256bit
+RB0 - registr byte 0 or RW0(7-0) or RD0(7-0) or ...
+RB3 - registr byte 3 or RW1(15-8) or RD0(31-24) or ...
 
+show all spec in file 4.html
