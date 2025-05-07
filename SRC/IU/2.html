@@ -1,0 +1,223 @@
+<p>Типов адресации много, даже не знаю нужно ли?</p>
+<table width="100%" border="1">
+<tbody>
+<tr>
+<td align="center" colspan="6"  bgcolor="#D3EDF6">OpCode<br/>6 bits</td>
+<td align="center" colspan="4"  bgcolor="#EDD3F6">OpType<br/>4 bits</td>
+<td align="center" colspan="11" bgcolor="#F6EDD3">OpTarget<br/>11 bits</td>
+<td align="center" colspan="11" bgcolor="#F6EDD3">OpSrc<br/>11 bits</td>
+</tr>
+<tr>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+</tr>
+</tbody>
+</table>
+
+<p> </p>
+<table width="100%" border="1">
+<tbody>
+<tr>
+<td width="10%" align="center" colspan="4" bgcolor="#EDD3F6">OpType</td>
+<td width="10%" align="center">Cmd len</td>
+<td width="20%" align="center">Target, Src</td>
+<td width="60%" align="center">Description</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>Reg, Reg</td>
+<td>Move registr to registr</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>Reg, Imm</td>
+<td>Load registr immediate 11 bits</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>Reg,   (Reg)</td>
+<td>Load registr from memory</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>(Reg),   Reg</td>
+<td>(Offset),   Reg</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">2</td>
+<td>Reg,   (Imm32)</td>
+<td>Reg,   (Offset 32)</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">2</td>
+<td>(Imm32),   Reg</td>
+<td>(Offset   32), Reg</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">3</td>
+<td>Reg,   (Imm64)</td>
+<td>Reg,   (Offset 64)</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">3</td>
+<td>(Imm64),   Reg</td>
+<td>(Offset   64), Reg</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">2</td>
+<td>Reg, (Reg   + Imm32)</td>
+<td>Reg, (Reg   + Offset 32)</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">2</td>
+<td>(Reg   +Imm32), Reg</td>
+<td>(Reg +   Offset 32), Reg</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">3</td>
+<td>Reg, (Reg   + Imm64)</td>
+<td>Reg, (Reg   + Offset 64)</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">3</td>
+<td>(Reg +   Imm64), Reg</td>
+<td>
+(Reg +   Offset 64), Reg
+</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">2</td>
+<td>
+Reg, Imm32
+</td>
+<td>
+Reg, Data   32
+</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">3
+</td>
+<td>
+Reg,   Imm64
+</td>
+<td>
+Reg, Data   64
+</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">5
+</td>
+<td>
+Reg, (Reg   + Reg1)
+</td>
+<td>
+ 
+</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">9
+</td>
+<td>
+Reg,   Imm256
+</td>
+<td>
+ 
+</td>
+</tr>
+</tbody>
+</table>
+<p> </p>

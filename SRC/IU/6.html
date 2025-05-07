@@ -1,0 +1,170 @@
+<p></p>
+
+<pre>
+    error    : ; -- неправильный код команды или адресаци€
+
+    type ctrl is record
+      opcode : ; -- команда
+      optype : ; -- адресаци€
+
+      cmd    : ; -- команда јЋ”
+      sel    : ; -- выбор јЋ”
+      wr     : ; -- запись результата
+
+      rsrc_a : ; -- адрес регистра источника
+      rsrc_s : ; -- размерность регистра
+      rsrc_c : ; -- битова€ маска регистра 
+
+      rdst_a : ; -- адрес регистра назначени€
+      rdst_s : ; -- размерность регистра    
+      rdst_c : ; -- битова€ маска регистра  
+
+      imm    : ; -- признак использовани€ данных из команды
+      imm_d  : ; -- данные наход€щиес€ в команде
+    end record;
+</pre>
+
+<p></p>
+
+<pre>
+    v.pc   := st2i.pc;
+    v.inst := st2i.inst;
+
+    ctrl.opcode := st2i.inst(op_pos);
+    ctrl.optype := st2i.inst(typ_pos);
+
+-- ѕроверка команд и типов адресации
+
+    ctrl.cmd := ALU_CMD_NOP;
+    ctrl.sel := ALU_SEL_ADD;
+    ctrl.wr  := '1';
+    ctrl.imm := '0';
+    error := '0';
+
+    case ctrl.optype is
+    when B0 | B2 | B4 | B6 | B8 | BA => -- Only reg
+      type_r := '1';
+    when B3 | B5 | B7 | B9 | BB =>      -- Mem
+      type_m := '1';
+    when B1 =>                          -- Imm
+      type_i := '1';
+      ctrl.imm   := '1';
+      ctrl.imm_d := (others => st2i.inst(23));
+      ctrl.imm_d(10 downto 0) := st2i.inst(10 downto 0);
+    when others =>                      -- Imm
+      type_i := '1';
+    end case;
+
+    case ctrl.optype is
+    when B4 | B5 | B8 | B9 | BC =>
+      type_32 := '1';
+    when B6 | B7 | BA | BB | BD =>
+      type_64 := '1';
+    when BE =>
+      type_128 := '1';
+    when BF =>
+      type_256 := '1';
+    when others => null;
+    end case;
+
+    case ctrl.opcode is
+    when OP_LOAD    => ctrl.cmd := ALU_CMD_ADD; ctrl.sel := ALU_SEL_ADD;
+    when OP_SWAP    => ctrl.cmd := ALU_CMD_ADD; ctrl.sel := ALU_SEL_ADD; if type_i = '1' then error := '1'; end if;
+    when OP_COMP    => ctrl.cmd := ALU_CMD_SUB; ctrl.sel := ALU_SEL_ADD; ctrl.wr  := '0';
+    when OP_ADD     => ctrl.cmd := ALU_CMD_ADD; ctrl.sel := ALU_SEL_ADD;
+    when OP_ADDC    => ctrl.cmd := ALU_CMD_ADC; ctrl.sel := ALU_SEL_ADD;
+    when OP_SUB     => ctrl.cmd := ALU_CMD_SUB; ctrl.sel := ALU_SEL_ADD;
+    when OP_SUBC    => ctrl.cmd := ALU_CMD_SBC; ctrl.sel := ALU_SEL_ADD;
+    when OP_AND     => ctrl.cmd := ALU_CMD_AND; ctrl.sel := ALU_SEL_LOGIC;
+    when OP_OR      => ctrl.cmd := ALU_CMD_OR;  ctrl.sel := ALU_SEL_LOGIC;
+    when OP_XOR     => ctrl.cmd := ALU_CMD_XOR; ctrl.sel := ALU_SEL_LOGIC;
+    when OP_MUL     => ctrl.cmd := ALU_CMD_MUL; ctrl.sel := ALU_SEL_MULT;
+    when OP_MULS    => ctrl.cmd := ALU_CMD_MLS; ctrl.sel := ALU_SEL_MULT;
+    when OP_DIV     => ctrl.cmd := ALU_CMD_DIV; ctrl.sel := ALU_SEL_MULT;
+    when OP_DIVS    => ctrl.cmd := ALU_CMD_DVS; ctrl.sel := ALU_SEL_MULT;
+    when OP_SLR     => ctrl.cmd := ALU_CMD_SLR; ctrl.sel := ALU_SEL_SHIFT;
+    when OP_SLL     => ctrl.cmd := ALU_CMD_SLL; ctrl.sel := ALU_SEL_SHIFT;
+    when OP_SAR     => ctrl.cmd := ALU_CMD_SAR; ctrl.sel := ALU_SEL_SHIFT;
+    when OP_ROR     => ctrl.cmd := ALU_CMD_ROR; ctrl.sel := ALU_SEL_ROTAT;
+    when OP_ROL     => ctrl.cmd := ALU_CMD_ROL; ctrl.sel := ALU_SEL_ROTAT;
+    when OP_RORC    => ctrl.cmd := ALU_CMD_RRC; ctrl.sel := ALU_SEL_ROTAT;
+    when OP_ROLC    => ctrl.cmd := ALU_CMD_RLC; ctrl.sel := ALU_SEL_ROTAT;
+    when OP_SPECIAL => 
+      if ctrl.optype(3) = '0'             then -- OPS_JUMP or OPS_CALL
+        if optype(2) = '0' then               -- OPS_JUMP
+          ctrl.cmd  := ALU_CMD_JMP;
+        else                                  -- OPS_CALL
+          ctrl.cmd  := ALU_CMD_CALL;
+        end if;
+        ctrl.optype := B1;
+        ctrl.sel    := ALU_SEL_JUMP;
+        ctrl.imm    := '1';
+        ctrl.imm_d  := "000" & st2i.inst(23) & 
+                       st2i.inst(23) & st2i.inst(23) & st2i.inst(23) & st2i.inst(23) & 
+                       st2i.inst(23 downto 0);
+      elseif ctrl.optype(3 downto 0) = "1100" then -- OPS_JMPIF
+        ctrl.cmd    := ALU_CMD_JMP;
+        ctrl.optype := B1;
+        ctrl.sel    := ALU_SEL_JUMP;
+        ctrl.imm    := '1';
+        ctrl.imm_d  := st2i.inst(21 downto 19) & st2i.inst(23) & 
+                       st2i.inst(23) & st2i.inst(23) & st2i.inst(23) & st2i.inst(23) & 
+                       st2i.inst(23) & st2i.inst(23) & st2i.inst(23) & st2i.inst(23) & 
+                       st2i.inst(23) & st2i.inst(18 downto 0);
+      elseif ctrl.optype(3 downto 2) = "10"   then -- OPS_BIT???
+        case ctrl.optype(1 downto 0) is
+        when "00"   => ctrl.cmd := ALU_CMD_BAND; ctrl.sel := ALU_SEL_LOGIC;  -- OPS_BITRESET
+        when "01"   => ctrl.cmd := ALU_CMD_BOR;  ctrl.sel := ALU_SEL_LOGIC;  -- OPS_BITSET
+        when "10"   => ctrl.cmd := ALU_CMD_BXOR; ctrl.sel := ALU_SEL_LOGIC;  -- OPS_BITINV
+        when others => ctrl.cmd := ALU_CMD_BSUB; ctrl.sel := ALU_SEL_ADD; ctrl.wr  := '0'; -- OPS_BITTEST
+        end case;
+        ctrl.optype := st2i.inst(21 downto 19) & '1';
+        ctrl.imm := '1';
+        ctrl.imm_d := st2i.inst(18 downto 11);
+      else                                    -- OPS_
+        error := '1';
+      end if;
+    when others => error := '1';
+    end case;
+</pre>
+
+<p>ќпределени€ адреса и размерности регистра</p>
+
+<pre>
+    rs  := st2i.inst(reg_pos);
+    ctrl.rsrc_a := (others => '0');
+    ctrl.rsrc_s := (others => '0');
+    ctrl.rsrc_c := (others => '0');
+    if     rs(10 downto 5) = "111111" then -- special reg
+      ctrl.rsrc_a(4 downto 0) := rs(4 downto 0);
+      ctrl.rsrc_s := RS_SQWORD;
+    elsif  rs(10 downto 5) = "111110" then -- RH reg
+      ctrl.rsrc_a(9 downto 5) := rs(4 downto 0);
+      ctrl.rsrc_s := RS_HWORD;
+      ctrl.rsrc_c := RAS_HWORD;
+    elsif  rs(10 downto 6) = "11110"  then -- RO reg
+      ctrl.rsrc_a(9 downto 4) := rs(5 downto 0);
+      ctrl.rsrc_s := RS_OWORD;
+      ctrl.rsrc_c := RAS_OWORD;
+    elsif  rs(10 downto 7) = "1110"   then -- RQ reg
+      ctrl.rsrc_a(9 downto 3) := rs(6 downto 0);
+      ctrl.rsrc_s := RS_QWORD;
+      ctrl.rsrc_c := RAS_QWORD;
+    elsif  rs(10 downto 8) = "110"    then -- RD reg
+      ctrl.rsrc_a(9 downto 2) := rs(7 downto 0);
+      ctrl.rsrc_s := RS_DWORD;
+      ctrl.rsrc_c := RAS_DWORD;
+    elsif  rs(10 downto 9) = "10"     then -- RW reg
+      ctrl.rsrc_a(9 downto 1) := rs(8 downto 0);
+      ctrl.rsrc_s := RS_WORD;
+      ctrl.rsrc_c := RAS_WORD;
+    elsif  rs(10)          = '0'      then -- RB reg
+      ctrl.rsrc_a(9 downto 0) := rs(9 downto 0);
+      ctrl.rsrc_s := RS_BYTE;
+      ctrl.rsrc_c := RAS_BYTE;
+    else
+      ctrl.rsrc_s := RS_NONE;
+    end if;
+</pre>
+
+<p></p>

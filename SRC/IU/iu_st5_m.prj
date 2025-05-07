@@ -1,0 +1,13 @@
+vhdl work ../alib/arith_utils.vhd
+vhdl work ../alib/arith_lib.vhd
+vhdl work ../alib/MulPPGenUns.vhd
+vhdl work ../alib/FullAdder.vhd
+vhdl work ../alib/Cpr.vhd
+vhdl work ../alib/AddMopCsv.vhd
+vhdl work ../alib/PrefixAndOr.vhd
+vhdl work ../alib/Add.vhd
+vhdl work ../alib/MulUns.vhd
+vhdl work ../config.vhd
+vhdl work ../ds0001.vhd
+vhdl work iu0001.vhd
+vhdl work iu_st5_m.vhd

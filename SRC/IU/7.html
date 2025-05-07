@@ -1,0 +1,267 @@
+<p>
+</p>
+
+<p></p>
+
+<pre>
+    type alu is record
+      cmd    : ; -- команда АЛУ
+      sel    : ; -- выбор АЛУ
+      wr     : ; -- запись результата
+
+      opA    : ; -- операнд A
+      opB    : ; -- операнд B
+
+      resultsa : ; -- адрес регистра назначения
+      resultss : ; -- размерность регистра
+      resultsm : ; -- запись регистр/память
+    end record;
+</pre>
+
+<p></p>
+
+<pre>
+    qcnt := STEP0;
+    qwi  := '0';
+    qwd  := '0';
+</pre>
+
+<p></p>
+
+<pre>
+    ctrl.opAt       := DASIS;
+    ctrl.opBt       := DASIS;
+    ctrl.resultaddr := AREG1;
+    ctrl.resultsize := SREG1;
+
+    if ctrl.opcode = OP_LOAD then
+      ctrl.opAt     := DZERO;
+    end if;
+
+    case st4.cnt is
+--  --------------------------------------------
+    when STEP0 =>
+      case ctrl.optype is 
+      when B0 =>
+        if ctrl.opcode = OP_SWAP then
+          ctrl.opBt       := DZERO;
+          ctrl.resultaddr := AREG2;
+          qcnt := STEP1;
+        end if;
+      when B1 =>
+        ctrl.opBt         := DIMMD;
+      when B2 =>
+        qcnt := STEP1;
+        qwd  := '1';
+      when B3 =>
+        if ctrl.opcode = OP_LOAD then
+          ctrl.resultaddr := AR1D;
+        else
+          qcnt := STEP1;
+          qwd  := '1';
+        end if;
+      when B4 | B5 | B6 | B7 | B8 | B9 | BA | BB | BC | BD =>
+        qcnt := STEP1;
+        qwi  := '1';
+      when others => null;
+      end case;
+--  --------------------------------------------
+    when STEP1 =>
+      case ctrl.optype is 
+      when B0 =>
+        ctrl.opAt         := DZERO;
+        ctrl.resultsize   := SREG2;
+      when B2 =>
+        if ctrl.opcode = OP_SWAP then
+          ctrl.opAt       := DZERO;
+          qcnt := STEP2;
+        end if;
+        ctrl.opBt         := DDATA;
+      when B3 =>
+        if ctrl.opcode = OP_SWAP then
+          ctrl.opBt       := DZERO;
+          ctrl.resultaddr := AREG2;
+          qcnt := STEP2;
+        end if;
+        ctrl.opAt         := DDATA;
+      when B4 =>
+        qcnt := STEP2;
+        qwd  := '1';
+      when B5 =>
+        if ctrl.opcode = OP_LOAD then
+          ctrl.resultaddr := AT32;
+        else
+          qcnt := STEP2;
+          qwd  := '1';
+        end if;
+      when B6 | B7 | BA | BB | BD =>
+        qcnt := STEP2;
+        qwi  := '1';
+        v.immd := st4.imm;
+      when B8 =>
+        qcnt := STEP2;
+        qwd  := '1';
+      when B9 =>
+        if ctrl.opcode = OP_LOAD then
+          ctrl.resultaddr := AT132;
+        else
+          qcnt := STEP2;
+          qwd  := '1';
+        end if;
+      when BC =>
+        ctrl.opBt         := DDAT2;
+      when others => null;
+      end case;
+--  --------------------------------------------
+    when STEP2 =>
+      case ctrl.optype is 
+      when B2 => -- Store REG1 to (Memory)
+        ctrl.opBt         := DZERO;
+        ctrl.resultaddr   := AOFS;
+      when B3 => -- Store REG2 to (Memory)
+        ctrl.opAt         := DZERO;
+        ctrl.resultaddr   := AOFS;
+      when B4 | B8 =>
+        if ctrl.opcode = OP_SWAP then
+          ctrl.opAt       := DZERO;
+          qcnt := STEP3;
+        end if;
+        ctrl.opBt         := DDATA;
+      when B5 | B9 =>
+        if ctrl.opcode = OP_SWAP then
+          ctrl.opBt       := DZERO;
+          ctrl.resultaddr := AREG2;
+          qcnt := STEP3;
+        end if;
+        ctrl.opAt         := DDATA;
+      when B6 | BA =>
+        qcnt := STEP3;
+        qwd  := '1';
+      when B7 =>
+        if ctrl.opcode = OP_LOAD then
+          ctrl.resultaddr := AT64;
+        else
+          qcnt := STEP3;
+          qwd  := '1';
+        end if;
+      when BB =>
+        if ctrl.opcode = OP_LOAD then
+          ctrl.resultaddr := AT164;
+        else
+          qcnt := STEP3;
+          qwd  := '1';
+        end if;
+      when BD =>
+        ctrl.opBt         := DDAT3;
+      when others => null;
+      end case;
+--  --------------------------------------------
+    when STEP3 =>
+      case ctrl.optype is 
+      when B4 | B8 => -- Store REG1 to (Memory)
+        ctrl.opBt         := DZERO;
+        ctrl.resultaddr   := AOFS;
+      when B5 | B9 => -- Store REG2 to (Memory)
+        ctrl.opAt         := DZERO;
+        ctrl.resultaddr   := AOFS;
+      when B6 | BA =>
+        if ctrl.opcode = OP_SWAP then
+          qcnt := STEP4;
+          ctrl.opAt       := DZERO;
+        end if;
+        ctrl.opBt         := DDATA;
+      when B7 | BB =>
+        if ctrl.opcode = OP_SWAP then
+          qcnt := STEP4;
+          ctrl.opBt       := DZERO;
+          ctrl.resultaddr := AREG2;
+        end if;
+        ctrl.opAt         := DDATA;
+      when others => null;
+      end case;
+--  --------------------------------------------
+    when STEP4 =>
+      case ctrl.optype is 
+      when B6 | BA => -- Store REG1 to (Memory)
+        ctrl.opBt         := DZERO;
+        ctrl.resultaddr   := AOFS;
+      when B7 | BB => -- Store REG2 to (Memory)
+        ctrl.opAt         := DZERO;
+        ctrl.resultaddr   := AOFS;
+      when others => null;
+      end case;
+--  --------------------------------------------
+    when STEP5 =>
+      case ctrl.optype is 
+      when BE =>
+        ctrl.opBt         := DDAT4;
+      when BF  =>
+        ctrl.opBt         := DDAT5;
+      when others => null;
+      end case;
+    when others => null;
+    end case;
+</pre>
+
+<p></p>
+
+<pre>
+    case ctrl.opAt is
+    when DASIS  => alu.opA := st4.rf1d;
+    when DDATA  => alu.opA := st4.data;
+    when DPC    => alu.opA := ctrl.pc;
+    when others => alu.opA := (others => '0');
+    end case;
+
+    case ctrl.opBt is
+    when DASIS  => alu.opB := st4.rf2d;
+    when DDATA  => alu.opB := st4.data;
+    when DIMMD  => alu.opB := ctrl.imm_d;
+    when DDAT2  => alu.opB := temp2;
+    when DDAT3  => alu.opB := temp3;
+    when others => alu.opB := (others => '0');
+    end case;
+
+    case ctrl.resultsaddr is
+    when AREG1  => alu.resultsm := '1'; alu.resultsa := st4.rf1a;
+    when AREG2  => alu.resultsm := '1'; alu.resultsa := st4.rf1a;
+    when AOFS   => alu.resultsm := '0'; alu.resultsa := ofs;
+    when AR1D   => alu.resultsm := '0'; alu.resultsa := st4.rf1d(qword_00);
+    when AT32   => alu.resultsm := '0'; alu.resultsa := t32;
+    when AT132  => alu.resultsm := '0'; alu.resultsa := t1_32;
+    when AT64   => alu.resultsm := '0'; alu.resultsa := t64;
+    when AT164  => alu.resultsm := '0'; alu.resultsa := t1_64;
+    when others => null;
+    end case;
+
+    alu.resultss := st4.rf1s when ctrl.resultssize = SREG1 else st4.rf2s;
+</pre>
+
+<p></p>
+
+<pre>
+    case st4.rf1s is
+    when RS_BYTE  => alu.opA(IUDbits-1 downto   8) := (others => op1d(  7));
+    when RS_WORD  => alu.opA(IUDbits-1 downto  16) := (others => op1d( 15));
+    when RS_DWORD => alu.opA(IUDbits-1 downto  32) := (others => op1d( 31));
+    when RS_QWORD => alu.opA(IUDbits-1 downto  64) := (others => op1d( 63));
+    when RS_OWORD => alu.opA(IUDbits-1 downto 128) := (others => op1d(127));
+    when others   => null;
+    end case;
+
+    case st4.rf2s is
+    when RS_BYTE  => alu.opB(IUDbits-1 downto   8) := (others => op2d(  7));
+    when RS_WORD  => alu.opB(IUDbits-1 downto  16) := (others => op2d( 15));
+    when RS_DWORD => alu.opB(IUDbits-1 downto  32) := (others => op2d( 31));
+    when RS_QWORD => alu.opB(IUDbits-1 downto  64) := (others => op2d( 63));
+    when RS_OWORD => alu.opB(IUDbits-1 downto 128) := (others => op2d(127));
+    when others   => null;
+    end case;
+</pre>
+
+<p></p>
+
+<pre>
+</pre>
+
+<p></p>

@@ -1,0 +1,320 @@
+<p></p>
+
+<pre>
+</pre>
+
+<p>
+<table width="100%" border="1">
+<tbody>
+<tr>
+<td width="10%" align="center">N</td>
+<td width="90%" align="center" colspan="5">Stage</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td>Fetch</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td>PreDecode</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td>Decode</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td>Memory</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td>Execute</td>
+</tr>
+</tbody>
+</table>
+</p>
+
+<pre>
+    case alu.sel is
+    when ALU_SEL_ADD => 
+    when ALU_SEL_LOGIC => 
+    when ALU_SEL_MULT => 
+    when ALU_SEL_SHIFT => 
+    when ALU_SEL_ROTAT => 
+    when ALU_SEL_JUMP => 
+    when others => null;
+    end case;
+</pre>
+
+<p> - Shift - </p>
+
+<pre>
+    a(IUDrange) := alu.opA;
+    a(IUDdblhi) := RS_ZERO_SYS;
+
+    b := alu.opB(7 downto 0);
+
+    if alu.cmd = ALU_SLL then -- logic left
+      a(IUDrange) := RS_ZERO_SYS;
+      a(IUDdblhi) := alu.opA;
+      b := not b;
+    end if;
+    if alu.cmd = ALU_SAR then -- right arith
+      case alu.resultss is
+      when RS_BYTE   => a(IUDbits*2-1 downto   8) := (others => a(  7));
+      when RS_WORD   => a(IUDbits*2-1 downto  16) := (others => a( 15));
+      when RS_DWORD  => a(IUDbits*2-1 downto  32) := (others => a( 31));
+      when RS_QWORD  => a(IUDbits*2-1 downto  64) := (others => a( 63));
+      when RS_OWORD  => a(IUDbits*2-1 downto 128) := (others => a(127));
+      when RS_HWORD  => a(IUDbits*2-1 downto 256) := (others => a(255));
+      when others    => null;
+      end case;
+    end if;
+
+    if b(7) = '1' then
+      a(IUDbits+127 downto 0) := a(IUDbits+255 downto 128);
+    end if;
+    if b(6) = '1' then
+      a(IUDbits+ 63 downto 0) := a(IUDbits+127 downto 64);
+    end if;
+    if b(5) = '1' then
+      a(IUDbits+ 31 downto 0) := a(IUDbits+ 63 downto 32);
+    end if;
+    if b(4) = '1' then
+      a(IUDbits+ 15 downto 0) := a(IUDbits+ 31 downto 16);
+    end if;
+    if b(3) = '1' then
+      a(IUDbits+  7 downto 0) := a(IUDbits+ 15 downto 8);
+    end if;
+    if b(2) = '1' then
+      a(IUDbits+  3 downto 0) := a(IUDbits+  7 downto 4);
+    end if;
+    if b(1) = '1' then
+      a(IUDbits+  1 downto 0) := a(IUDbits+  3 downto 2);
+    end if;
+    if b(0) = '1' then
+      a(IUDbits-  1 downto 0) := a(IUDbits     downto 1);
+    end if;
+
+    aluout.result <= a(IUDrange);
+</pre>
+
+<p> - Rotate - </p>
+
+<pre>
+    a := alu.opA;
+    b := alu.opB(7 downto 0);
+
+    n := alu.flag(3);
+    z := alu.flag(2);
+    o := alu.flag(1);
+    c := alu.flag(0);
+
+    tb := '0';
+    if (alu.cmd = ALU_RRC) or (alu.cmd = ALU_RLC) then
+      tb := '1';
+    end if;
+    if (alu.cmd = ALU_ROL) or (alu.cmd = ALU_RLC) then
+      b := not b;
+    end if;
+
+    if b(7) = '1' then
+      tr := c;
+      c := a(127); 
+      if tb = '0' then
+        tmp(127 downto 0) := a(127 downto 0);
+      else
+        tmp(127 downto 0) := a(126 downto 0) & tr;
+      end if;   
+      case alu.resultss is
+      when RS_BYTE   => c := tr;
+      when RS_WORD   => c := tr;
+      when RS_DWORD  => c := tr;
+      when RS_QWORD  => c := tr;
+      when RS_OWORD  => a(size_o) := tmp(127 downto 0);
+      when RS_HWORD  => a(size_h) := tmp(127 downto 0) & a(255 downto 128);
+      when others    => c := tr;
+      end case;
+    end if;
+    if b(6) = '1' then
+      tr := c;
+      c := a(63); 
+      if tb = '0' then
+        tmp(63 downto 0) := a(63 downto 0);
+      else
+        tmp(63 downto 0) := a(62 downto 0) & tr;
+      end if;   
+      case alu.resultss is
+      when RS_BYTE   => c := tr;
+      when RS_WORD   => c := tr;
+      when RS_DWORD  => c := tr;
+      when RS_QWORD  => a(size_q) := tmp(63 downto 0);
+      when RS_OWORD  => a(size_o) := tmp(63 downto 0) & a(127 downto 64);
+      when RS_HWORD  => a(size_h) := tmp(63 downto 0) & a(255 downto 64);
+      when others    => c := tr;
+      end case;
+    end if;
+    if b(5) = '1' then
+      tr := c;
+      c := a(31); 
+      if tb = '0' then
+        tmp(31 downto 0) := a(31 downto 0);
+      else
+        tmp(31 downto 0) := a(30 downto 0) & tr;
+      end if;   
+      case alu.resultss is
+      when RS_BYTE   => c := tr;
+      when RS_WORD   => c := tr;
+      when RS_DWORD  => a(size_d) := tmp(31 downto 0);
+      when RS_QWORD  => a(size_q) := tmp(31 downto 0) & a( 63 downto 32);
+      when RS_OWORD  => a(size_o) := tmp(31 downto 0) & a(127 downto 32);
+      when RS_HWORD  => a(size_h) := tmp(31 downto 0) & a(255 downto 32);
+      when others    => c := tr;
+      end case;
+    end if;
+    if b(4) = '1' then
+      tr := c;
+      c := a(15); 
+      if tb = '0' then
+        tmp(15 downto 0) := a(15 downto 0);
+      else
+        tmp(15 downto 0) := a(14 downto 0) & tr;
+      end if;   
+      case alu.resultss is
+      when RS_BYTE   => c := tr;
+      when RS_WORD   => a(size_w) := tmp(15 downto 0);
+      when RS_DWORD  => a(size_d) := tmp(15 downto 0) & a( 31 downto 16);
+      when RS_QWORD  => a(size_q) := tmp(15 downto 0) & a( 63 downto 16);
+      when RS_OWORD  => a(size_o) := tmp(15 downto 0) & a(127 downto 16);
+      when RS_HWORD  => a(size_h) := tmp(15 downto 0) & a(255 downto 16);
+      when others    => c := tr;
+      end case;
+    end if;
+    if b(3) = '1' then
+      tr := c;
+      c := a(7); 
+      if tb = '0' then
+        tmp(7 downto 0) := a(7 downto 0);
+      else
+        tmp(7 downto 0) := a(6 downto 0) & tr;
+      end if;   
+      case alu.resultss is
+      when RS_BYTE   => a(size_b) := tmp( 7 downto 0);
+      when RS_WORD   => a(size_w) := tmp( 7 downto 0) & a( 15 downto  8);
+      when RS_DWORD  => a(size_d) := tmp( 7 downto 0) & a( 31 downto  8);
+      when RS_QWORD  => a(size_q) := tmp( 7 downto 0) & a( 63 downto  8);
+      when RS_OWORD  => a(size_o) := tmp( 7 downto 0) & a(127 downto  8);
+      when RS_HWORD  => a(size_h) := tmp( 7 downto 0) & a(255 downto  8);
+      when others    => c := tr;
+      end case;
+    end if;
+    if b(2) = '1' then
+      tr := c;
+      c := a(3); 
+      if tb = '0' then
+        tmp(3 downto 0) := a(3 downto 0);
+      else
+        tmp(3 downto 0) := a(2 downto 0) & tr;
+      end if;   
+      case alu.resultss is
+      when RS_BYTE   => a(size_b) := tmp( 3 downto 0) & a(  7 downto  4);
+      when RS_WORD   => a(size_w) := tmp( 3 downto 0) & a( 15 downto  4);
+      when RS_DWORD  => a(size_d) := tmp( 3 downto 0) & a( 31 downto  4);
+      when RS_QWORD  => a(size_q) := tmp( 3 downto 0) & a( 63 downto  4);
+      when RS_OWORD  => a(size_o) := tmp( 3 downto 0) & a(127 downto  4);
+      when RS_HWORD  => a(size_h) := tmp( 3 downto 0) & a(255 downto  4);
+      when others    => c := tr;
+      end case;
+    end if;
+    if b(1) = '1' then
+      tr := c;
+      c := a(1); 
+      if tb = '0' then
+        tmp(1 downto 0) := a(1 downto 0);
+      else
+        tmp(1 downto 0) := a(0) & tr;
+      end if;   
+      case alu.resultss is
+      when RS_BYTE   => a(size_b) := tmp( 1 downto 0) & a(  7 downto  2);
+      when RS_WORD   => a(size_w) := tmp( 1 downto 0) & a( 15 downto  2);
+      when RS_DWORD  => a(size_d) := tmp( 1 downto 0) & a( 31 downto  2);
+      when RS_QWORD  => a(size_q) := tmp( 1 downto 0) & a( 63 downto  2);
+      when RS_OWORD  => a(size_o) := tmp( 1 downto 0) & a(127 downto  2);
+      when RS_HWORD  => a(size_h) := tmp( 1 downto 0) & a(255 downto  2);
+      when others    => c := tr;
+      end case;
+    end if;
+    if b(0) = '1' then
+      tr := c;
+      c := a(0); 
+      if tb = '0' then
+        tmp(0) := a(0);
+      else
+        tmp(0) := tr;
+      end if;   
+      case alu.resultss is
+      when RS_BYTE   => a(size_b) := tmp(0) & a(  7 downto 1);
+      when RS_WORD   => a(size_w) := tmp(0) & a( 15 downto 1);
+      when RS_DWORD  => a(size_d) := tmp(0) & a( 31 downto 1);
+      when RS_QWORD  => a(size_q) := tmp(0) & a( 63 downto 1);
+      when RS_OWORD  => a(size_o) := tmp(0) & a(127 downto 1);
+      when RS_HWORD  => a(size_h) := tmp(0) & a(255 downto 1);
+      when others    => c := tr;
+      end case;
+    end if;
+
+    aluout.result <= a;
+    aluout.flag   <= n & z & o & c;
+</pre>
+
+<p> - Logic - </p>
+
+<pre>
+    a := alu.opA;
+    if alu.cmd(2) = '0' then
+      b := alu.opB;
+    else
+      b := decode(alu.opB(7 downto 0));
+    end if;   
+
+    n := alu.flag(3);
+    z := alu.flag(2);
+    o := alu.flag(1);
+    c := alu.flag(0);
+
+    r := (others => '0');
+    case alu.cmd is
+    when ALU_AND  => r := a and b;
+    when ALU_OR   => r := a or  b;
+    when ALU_XOR  => r := a xor b;
+    when ALU_BAND => r := a and not b;
+    when ALU_BOR  => r := a or  b;
+    when ALU_BXOR => r := a xor b;
+    when others => null;
+    end case;
+
+    case alu.resultss is
+    when RS_BYTE   => tr := r(  7);
+    when RS_WORD   => tr := r( 15);
+    when RS_DWORD  => tr := r( 31);
+    when RS_QWORD  => tr := r( 63);
+    when RS_OWORD  => tr := r(127);
+    when RS_HWORD  => tr := r(255);
+    when others    => tr := r( 63);
+    end case;
+
+    c := '0';
+    o := '0';
+    n := tr;
+
+    aluout.result <= r;
+    aluout.flag   <= n & z & o & c;
+</pre>
+
+<p></p>
+
+<pre>
+</pre>
+
+<p></p>
+

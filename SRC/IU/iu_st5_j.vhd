@@ -1,0 +1,93 @@
+--------------------------------------------------------------------------
+--
+--  Copyright (C) 1998, Dmitry Sushentsov
+--  e-mail:	info @ dspu.info
+--
+--  This program is free software; you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation; either version 1, or (at your option)
+--  any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with this program; if not, write to the Free Software
+--  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+--
+--------------------------------------------------------------------------
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.config.all;
+use work.ds0001.all;
+use work.iu0001.all;
+library arith_lib;
+--use arith_lib.arith_lib.all;
+
+entity iu_st5_j is
+  port (
+    op   : in  ALUOp;	-- Alu operation
+    op1d : in  IUData;	-- source operand 1
+    op1s : in  IUSize;	-- size source operand 1
+    op2d : in  IUData;	-- source operand 2
+    icci : in  IUICC;	-- integer condition codes
+    res  : out IUData;	-- data forward from execute stage
+    icco : out IUICC	-- integer condition codes
+  );
+end;
+
+architecture Behavioral of iu_st5_j is
+
+signal res1 : std_logic_vector(size_q);
+
+begin
+--  p0 : add
+--	generic map (64, fast)
+--	Port Map (op1d(size_q), op2d(size_q), res1);
+	
+  p1 : process(op, op1d, op1s, op2d, icci, res1)
+
+    variable c : std_logic;
+    variable o : std_logic;
+    variable z : std_logic;
+    variable n : std_logic;
+    variable ta : std_logic;
+    variable tb : std_logic;
+    variable tr : std_logic;
+    variable a : IUData;
+    variable tmp : IUData;
+    variable b : IUData;
+    variable r : IUData;
+
+  begin
+    a := op1d;
+    b := op2d;
+
+    n := icci(3);
+    z := icci(2);
+    o := icci(1);
+    c := icci(0);
+
+    r := (others => '0');
+
+    case op(2 downto 0) is
+    when "000"  => tr := '0';			-- bn,   ba
+    when "001"  => tr := z;			-- be,   bne
+    when "010"  => tr := z or (n xor o);	-- ble,  bg
+    when "011"  => tr := n xor o;		-- bl,   bge
+    when "100"  => tr := c or z;		-- blue, bgu
+    when "101"  => tr := c;			-- bcs,  bcc 
+    when "110"  => tr := n;			-- bneg, bpos
+    when others => tr := o;			-- bvs,  bvc   
+    end case;
+
+    r(size_q) := res1;
+    r(iudbits-1) := tr xor op(3);
+
+    res  <= r;
+    icco <= n & z & o & c;
+  end process;
+end;

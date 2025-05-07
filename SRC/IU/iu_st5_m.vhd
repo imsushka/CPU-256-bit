@@ -1,0 +1,113 @@
+--------------------------------------------------------------------------
+--
+--  Copyright (C) 1998, Dmitry Sushentsov
+--  e-mail:	info @ dspu.info
+--
+--  This program is free software; you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation; either version 1, or (at your option)
+--  any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with this program; if not, write to the Free Software
+--  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+--
+--------------------------------------------------------------------------
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.config.all;
+use work.ds0001.all;
+use work.iu0001.all;
+library arith_lib;
+--use arith_lib.arith_lib.all;
+
+entity iu_st5_m is
+  port (
+    op   : in  ALUOp;	-- Alu operation
+    op1d : in  IUData;	-- source operand 1
+    op1s : in  IUSize;	-- size source operand 1
+    op2d : in  IUData;	-- source operand 2
+    icci : in  IUICC;	-- integer condition codes
+    res  : out IUData;	-- data forward from execute stage
+    icco : out IUICC	-- integer condition codes
+  );
+end;
+
+architecture Behavioral of iu_st5_m is
+
+signal res1 : IUData;
+signal res2 : IUData;
+signal res3 : IUData;
+signal res4 : IUData;
+signal res5 : IUData;
+signal res6 : IUData;
+
+constant mdsize : integer := 64;
+
+begin
+--  p1 : MulUns
+--	generic map (mdsize, mdsize, fast)
+--	Port Map (op1d(mdsize-1 downto 0), op2d(mdsize-1 downto 0), res1(mdsize*2-1 downto 0));
+
+--  p2 : MulSgn
+--	generic map (64, 64, fast)
+--	Port Map (op1d(size_q), op2d(size_q), res2(size_o));
+
+--  p3 : DivUns
+--	generic map (64, 64, fast)
+--	Port Map (op1d(size_q), op2d(size_q), res3(size_q), res4(size_q));
+	                                                                
+--  p4 : DivSgn                                                           
+--	generic map (64, 64, fast)                                      
+--	Port Map (op1d(size_q), op2d(size_q), res5(size_q), res6(size_q));
+
+  p0 : process(op, op1d, op1s, op2d, icci, res1, res2, res3, res4, res5, res6)
+
+    variable c : std_logic;
+    variable o : std_logic;
+    variable z : std_logic;
+    variable n : std_logic;
+    variable ta : std_logic;
+    variable tb : std_logic;
+    variable tr : std_logic;
+    variable a : IUData;
+    variable tmp : std_logic_vector(1 downto 0);
+    variable b : IUData;
+    variable r : std_logic_vector(iuddblrange);
+    variable s : std_logic;
+
+  begin
+    n := icci(3);
+    z := icci(2);
+    o := icci(1);
+    c := icci(0);
+
+    a := op1d;
+    b := op2d;
+    r := (others => '0');
+
+    case op is
+    when ALU_MUL => r(size_o) := res1(size_o);
+    when ALU_MLS => r(size_o) := res2(size_o);
+    when ALU_DIV => r(size_q) := res3(size_q);
+    when ALU_DVS => r(size_q) := res4(size_q);
+    when ALU_MOD => r(size_q) := res5(size_q);
+    when others => null;
+    end case;
+
+    if r(iuddblhi) = RS_ZERO_SYS then
+      o := '0';
+    else
+      o := '1';
+    end if;
+
+    res  <= r(IUDrange);
+    icco <= n & z & o & c;
+  end process;
+end;

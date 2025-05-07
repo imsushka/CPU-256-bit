@@ -1,0 +1,98 @@
+--------------------------------------------------------------------------
+--
+--  Copyright (C) 1998, Dmitry Sushentsov
+--  e-mail:	info @ dspu.info
+--
+--  This program is free software; you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation; either version 1, or (at your option)
+--  any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with this program; if not, write to the Free Software
+--  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+--
+--------------------------------------------------------------------------
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use work.config.all;
+use work.ds0001.all;
+use work.iu0001.all;
+library arith_lib;
+use arith_lib.arith_lib.all;
+
+entity iu_st5_as is
+  port (
+    op   : in  ALUOp;	-- Alu operation
+    op1d : in  IUData;	-- source operand 1
+    op1s : in  IUSize;	-- size source operand 1
+    op2d : in  IUData;	-- source operand 2
+    icci : in  IUICC;	-- integer condition codes
+    res  : out IUData;	-- data forward from execute stage
+    icco : out IUICC	-- integer condition codes
+  );
+end;
+
+architecture Behavioral of iu_st5_as is
+
+signal res1 : IUData;
+signal as : std_logic;
+signal ci : std_logic;
+signal co : std_logic;
+
+begin
+  as <= '0' when (op = ALU_ADD) or (op = ALU_ADC) else '1';
+  ci <= '0' when (op = ALU_ADD) or (op = ALU_SUB) else icci(0);
+--  p0 : AddSubC
+--	generic map (256, fast)
+--	Port Map (op1d, op2d, ci, as, res1, co);
+
+  p1 : process(op, op1d, op1s, op2d, icci, res1)
+
+    variable c  : std_logic;
+    variable o  : std_logic;
+    variable z  : std_logic;
+    variable n  : std_logic;
+    variable ta : std_logic;
+    variable tb : std_logic;
+    variable tr : std_logic;
+    variable a : IUData;
+    variable b : IUData;
+    variable r : IUData;
+    variable s  : std_logic;
+
+  begin
+    a := op1d;
+    b := op2d;
+
+    n := icci(3);
+    z := icci(2);
+    o := icci(1);
+    c := icci(0);
+
+    r := res1;
+
+    case op1s is
+    when RS_BYTE   => ta := a(  7); tb := b(  7); tr := r(  7);
+    when RS_WORD   => ta := a( 15); tb := b( 15); tr := r( 15);
+    when RS_DWORD  => ta := a( 31); tb := b( 31); tr := r( 31);
+    when RS_QWORD  => ta := a( 63); tb := b( 63); tr := r( 63);
+    when RS_OWORD  => ta := a(127); tb := b(127); tr := r(127);
+    when RS_HWORD  => ta := a(255); tb := b(255); tr := r(255);
+    when others    => ta := a( 63); tb := b( 63); tr := r( 63);
+    end case;
+
+    c := (ta and tb) or ((not tr) and (ta or tb));
+    o := (ta and tb and not tr) or (tr and (not ta) and (not tb));
+    n := tr;
+
+    icco <= n & z & o & c;
+    res  <= r;
+  end process;
+end;

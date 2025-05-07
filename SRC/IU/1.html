@@ -1,0 +1,843 @@
+<p> </p>
+<p>Я подумал подумал и решил, будет у меня мало команд. Типа RISC процессор.</p>
+<p>Выделил под команды 6 бит, то есть  всего 64 команды.</p>
+<p> </p>
+<table width="100%" border="1">
+<tbody>
+<tr>
+<td align="center" colspan="6"  bgcolor="#D3EDF6">OpCode<br/>6 bits</td>
+<td align="center" colspan="4"  bgcolor="#EDD3F6">OpType<br/>4 bits</td>
+<td align="center" colspan="11" bgcolor="#F6EDD3">OpTarget<br/>11 bits</td>
+<td align="center" colspan="11" bgcolor="#F6EDD3">OpSrc<br/>11 bits</td>
+</tr>
+<tr>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+</tr>
+</tbody>
+</table>
+
+<p> </p>
+<ol>
+<li>Load - загрузить регистр/память из регистра/памяти/команды</li>
+<li>Swap - обменять 2 регистра/памяти</li>
+<li>Comp - сравнить</li>
+<li>And / Or / Xor - логические команды</li>
+<li>Slr / Sll / Sar - сдвиги вправо/влево логические и арифметические</li>
+<li>Ror / Rol / Rorc / Rolc - сдвиг с переносом</li>
+<li>Add / Addc / Adds / Sub / Subc / Subs - сложение/вычитание простое/с переносом/со знаком</li>
+<li>Mul / Muls / Div / Divs / Mod - умножение/деление/остаток</li>
+<li>Jmp / Call / Int / Ret - команды переходов</li>
+<li>Push / Pop - стек</li>
+<li>BitSet / BitReset / BitTest - работа с битами</li>
+</ol>
+<p>И хоть эти команды заняли 32 позиции, но не получилось у меня RISC.</p>
+<p>Сначала даже стека не было, не знал как аппаратно сделать однотактовую работу со стеком. Но не прошло и пяти лет как я придумал. И вот у меня есть стековые команды.</p>
+<p>Команды работы с битами добавлял, чтоб заполнить пустые позиции. И даже еще место осталось.</p>
+<p> </p>
+<table width="100%" border="1">
+<tbody>
+<tr>
+<td width="3%" align="center">N</td>
+<td width="10%" align="center" colspan="6" bgcolor="#D3EDF6">OpCode</td>
+<td width="10%">Command</td>
+<td width="10%">Flags</td>
+<td width="72%">Description</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td>OP_LOAD</td>
+<td>No change</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>OP_SWAP</td>
+<td>No change</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td>OP_COMP</td>
+<td>All</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>OP_AND</td>
+<td>Zero</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td>OP_OR</td>
+<td>Zero</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>OP_XOR</td>
+<td>Zero</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td>OP_SLR</td>
+<td>Zero, carry</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">7</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>OP_SLL</td>
+<td>Zero, carry</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">8</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td>OP_SAR</td>
+<td>Zero, carry</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">9</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>OP_ROR</td>
+<td>Zero, carry</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">10</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td>OP_RORC</td>
+<td>Zero, carry</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">11</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>OP_ROL</td>
+<td>Zero, carry</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">12</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td>OP_ROLC</td>
+<td>Zero, carry</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">13</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>OP_ADD</td>
+<td>All</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">14</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td>OP_ADDC</td>
+<td>All</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">15</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>OP_ADDS</td>
+<td>All</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">16</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td>OP_SUB</td>
+<td>All</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">17</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>OP_SUBC</td>
+<td>All</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">18</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td>OP_SUBS</td>
+<td>All</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">19</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>OP_MUL</td>
+<td>Overflow</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">20</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td>OP_MULS</td>
+<td>Overflow</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">21</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>OP_DIV</td>
+<td>Overflow</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">22</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td>OP_DIVS</td>
+<td>Overflow</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">23</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>OP_MOD</td>
+<td>Overflow</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">24</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td>OP_FREE1</td>
+<td>&nbsp;</td>
+<td>Свободно, можно использовать.</td>
+</tr>
+<tr>
+<td align="center">25</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>OP_FREE2</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">26</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td>OP_FREE3</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">27</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>OP_FREE4</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">28</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td>OP_FREE5</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">29</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>OP_FREE6</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">30</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td>OP_FREE7</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td align="center">31</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td>OP_SPECIAL</td>
+<td>&nbsp;</td>
+<td>Однооперандные команды</td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+
+<table width="100%" border="1">
+<tbody>
+<tr>
+<td align="center" colspan="6"  bgcolor="#D3EDF6">OpCode<br/>6 bits</td>
+<td align="center" colspan="26" bgcolor="#C3EDE6">OpCodeAdd<br/>26 bits</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+</tr>
+</tbody>
+</table>
+
+<p> </p>
+
+<table width="100%" border="1">
+<tbody>
+<tr>
+<td width="3%" align="center">N</td>
+<td width="32%" align="center" colspan="26" bgcolor="#C3EDE6">OpCodeAdd</td>
+<td width="10%">Command</td>
+<td width="55%">Description</td>
+</tr>
+
+<tr>
+<td align="center">0</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td>OPS_JUMP24</td>
+<td>Безусловный переход в пределах 2^24.</td>
+</tr>
+
+<tr>
+<td align="center">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td>OPS_CALL24</td>
+<td>Безусловный переход к подпрограмме в пределах 2^24.</td>
+</tr>
+
+<tr>
+<td align="center">2</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td>OPS_BITSET</td>
+<td>Установка бита. Аналогична команде "Or reg/mem, #"</td>
+</tr>
+
+<tr>
+<td align="center">3</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td>OPS_BITRESET</td>
+<td>Сброс бита. Аналогична команде "And reg/mem, #"</td>
+</tr>
+
+<tr>
+<td align="center">4</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td>OPS_BITINV</td>
+<td>Инверсия бита. Аналогична команде "Xor reg/mem, #"</td>
+</tr>
+
+<tr>
+<td align="center">5</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center" bgcolor="#EDD3F6">t</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center">b</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td align="center" bgcolor="#F6EDD3">r</td>
+<td>OPS_BITTEST</td>
+<td>Проверка бита. Аналогична команде "Comp reg/mem, #"</td>
+</tr>
+
+<tr>
+<td align="center">6</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+
+<td align="center">y</td>
+<td align="center">y</td>
+<td align="center">y</td>
+
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td>OPS_Jyyy</td>
+<td>Условный/безусловный переход в пределах 2^19</td>
+</tr>
+
+<tr>
+<td align="center">7</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td>OPS_INT</td>
+<td>Вызов системного прерывания. (Может быть)</td>
+</tr>
+
+<tr>
+<td align="center">8</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">0</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td>OPS_RET</td>
+<td>Возврат из подпрограммы/прерывания (Может быть)</td>
+</tr>
+
+<tr>
+<td align="center">9</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center" bgcolor="#C3EDE6">1</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td align="center">x</td>
+<td>OPS_</td>
+<td>Свободно, можно использовать.</td>
+</tr>
+
+</tbody>
+</table>
+<p> </p>
