@@ -1,0 +1,10 @@
+vhdl work ../config.vhd
+vhdl work ../ds0001.vhd
+vhdl work rfiface.vhd
+vhdl work mux_1_to_n.vhdl
+vhdl work rf_mux_in.vhdl
+vhdl work ram.vhdl
+vhdl work rf_mux_out.vhdl
+vhdl work rf.vhdl
+vhdl work mux_n_to_1.vhdl
+vhdl work rfarray1.vhdl
